@@ -43,6 +43,11 @@ export interface StateBehavior {
      * Called when the bot leaves this behavior state.
      */
   onStateExited?: () => void
+
+  /**
+   * Called on every tick the state is active. If the function returns true it triggers the next state Transition.
+   */
+  triggerTransition?: () => boolean
 }
 
 /**
@@ -335,7 +340,7 @@ export class NestedStateMachine extends EventEmitter implements StateBehavior {
     for (let i = 0; i < this.transitions.length; i++) {
       const transition = this.transitions[i]
       if (transition.parentState === this.activeState) {
-        if (transition.isTriggered() || transition.shouldTransition()) {
+        if (transition.isTriggered() || transition.shouldTransition() || transition.parentState.triggerTransition?.() === true) {
           transition.resetTrigger()
 
           this.activeState.active = false
